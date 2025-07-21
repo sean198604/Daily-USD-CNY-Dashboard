@@ -1,0 +1,9 @@
+Flask
+Flask-APScheduler
+APScheduler
+requests
+beautifulsoup4
+pandas
+html5lib
+gunicorn
+waitress

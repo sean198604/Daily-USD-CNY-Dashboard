@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>USD现汇买入价看板</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0;
+      color: #007BFF;
+    }
+
+    .logo {
+      height: 40px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 420px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #a0c4ff;
+      cursor: not-allowed;
+    }
+
+    #refresh-info {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.3rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #chart {
+        height: 300px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>今日USD现汇买入价（<span id="today-date">—</span>）：<span id="today-rate">—</span></h1>
+      <img src="{{ url_for('static', filename='LOGO.PNG') }}" class="logo" alt="公司LOGO" />
+    </div>
+
+    <div class="card">
+      <div id="chart"></div>
+    </div>
+
+    <div class="card">
+      <button id="refresh-btn">获取最新汇率</button>
+      <div id="refresh-info">滑动滚轮 ↑↓ 可调整历史显示天数（7–90天）</div>
+    </div>
+  </div>
+
+  <script>
+    let currentDays = 30;
+    const minDays = 7;
+    const maxDays = 90;
+
+    async function loadData() {
+      const resp = await fetch(`/api/rates?days=${currentDays}`);
+      const data = await resp.json();
+      if (!data.length) return;
+
+      const today = data[data.length - 1];
+      document.getElementById('today-rate').innerText = today.rate || '—';
+      document.getElementById('today-date').innerText = today.date || '—';
+
+      const chart = echarts.init(document.getElementById('chart'));
+      chart.setOption({
+        backgroundColor: '#fff',
+        tooltip: {
+          trigger: 'axis',
+          formatter: params => {
+            const p = params[0];
+            return `${p.axisValue}<br/>汇率: ${p.data}`;
+          }
+        },
+        grid: {
+          left: '5%',
+          right: '5%',
+          bottom: '20%',
+          top: '10%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: data.map(d => d.date),
+          boundaryGap: false,
+          axisLabel: { rotate: 45 }
+        },
+        yAxis: {
+          type: 'value',
+          min: 700,
+          max: 740,
+          splitLine: { lineStyle: { type: 'dashed' } }
+        },
+        dataZoom: [
+          {
+            type: 'inside',
+            start: 0,
+            end: 100
+          },
+          {
+            type: 'slider',
+            start: 0,
+            end: 100,
+            height: 24,
+            bottom: 10
+          }
+        ],
+        series: [{
+          name: '汇率',
+          type: 'line',
+          data: data.map(d => d.rate),
+          smooth: true,
+          showSymbol: false,
+          lineStyle: {
+            color: '#007BFF',
+            width: 3
+          },
+          areaStyle: {
+            color: 'rgba(0, 123, 255, 0.15)'
+          }
+        }]
+      });
+    }
+
+    async function refreshRate() {
+      const btn = document.getElementById('refresh-btn');
+      btn.disabled = true;
+      btn.innerText = '刷新中...';
+
+      try {
+        const resp = await fetch('/api/fetch', { method: 'POST' });
+        const result = await resp.json();
+        if (result.rate) {
+          await loadData();
+        } else {
+          alert('抓取失败: ' + (result.error || '未知错误'));
+        }
+      } catch (err) {
+        alert('网络错误: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '获取最新汇率';
+      }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', refreshRate);
+
+    document.addEventListener('wheel', function (e) {
+      if (e.deltaY < 0) {
+        currentDays = Math.min(currentDays + 1, maxDays);
+      } else {
+        currentDays = Math.max(currentDays - 1, minDays);
+      }
+      loadData();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
