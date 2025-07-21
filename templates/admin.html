@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>后台管理</title></head>
+<body>
+  <h1>汇率记录管理</h1>
+  <form method="post">
+    日期: <input type="date" name="date" required>
+    现汇买入价: <input type="number" step="0.0001" name="rate" required>
+    <button>保存</button>
+  </form>
+  <h2>最近记录</h2>
+  <table border="1">
+    <tr><th>日期</th><th>发布时间</th><th>汇率</th><th>手动</th><th>操作</th></tr>
+    {% for id,d,pt,r,m in rows %}
+    <tr>
+      <td>{{ d }}</td>
+      <td>{{ pt if pt else '—' }}</td>
+      <td>{{ r }}</td>
+      <td>{{ '是' if m else '否' }}</td>
+      <td><a href="/admin/delete/{{ id }}" onclick="return confirm('确认删除?')">删除</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
