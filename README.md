@@ -90,8 +90,8 @@ python fetch_usd_rate.py  # 初始化数据库
 python app.py             # 启动 Flask 应用
 ```
 
-- 浏览器访问 [http://localhost:5050/或本机ip地址+：5050) 查看看板页面。
-- 管理员后台http://localhost:5050/admin
+- 浏览器访问 http://localhost:5050/（或本机ip地址+：5050) 查看看板页面。
+- 管理员后台 http://localhost:5050/admin
 
 ---
 
