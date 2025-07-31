@@ -123,7 +123,8 @@ def api_fetch():
             return jsonify({
                 'date': row[0],
                 'pub_time': row[1],
-                'rate': row[2]
+                'rate': row[2],
+                'time': row[1]  # 新增字段
             })
         else:
             return jsonify({'error': '无记录'})
@@ -139,6 +140,7 @@ def job_fetch_daily():
         print(f"[定时任务] 抓取成功")
     except Exception as e:
         print(f"[定时任务错误] {e}")
+
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(
@@ -156,6 +158,7 @@ if __name__ == '__main__':
     from waitress import serve
     print("🚀 启动服务：http://0.0.0.0:5050")
     serve(app, host='0.0.0.0', port=5050)
+
 import webbrowser
 import threading
 

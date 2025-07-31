@@ -82,6 +82,12 @@
       color: #666;
     }
 
+    #last-fetch-info {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #444;
+    }
+
     @media (max-width: 600px) {
       h1 {
         font-size: 1.3rem;
@@ -116,6 +122,10 @@
     <div class="card">
       <button id="refresh-btn">获取最新汇率</button>
       <div id="refresh-info">滑动滚轮 ↑↓ 可调整历史显示天数（7–90天）</div>
+      <div id="last-fetch-info">
+        最后抓取时间：—<br/>
+        抓取汇率：—
+      </div>
     </div>
   </div>
 
@@ -123,74 +133,70 @@
     let currentDays = 30;
     const minDays = 7;
     const maxDays = 90;
+    let chart = null;
 
     async function loadData() {
-      const resp = await fetch(`/api/rates?days=${currentDays}`);
-      const data = await resp.json();
-      if (!data.length) return;
+      try {
+        const resp = await fetch(`/api/rates?days=${currentDays}`);
+        const data = await resp.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          alert('未能获取有效数据');
+          return;
+        }
 
-      const today = data[data.length - 1];
-      document.getElementById('today-rate').innerText = today.rate || '—';
-      document.getElementById('today-date').innerText = today.date || '—';
+        const today = data[data.length - 1];
+        document.getElementById('today-rate').innerText = today.rate || '—';
+        document.getElementById('today-date').innerText = today.date || '—';
 
-      const chart = echarts.init(document.getElementById('chart'));
-      chart.setOption({
-        backgroundColor: '#fff',
-        tooltip: {
-          trigger: 'axis',
-          formatter: params => {
-            const p = params[0];
-            return `${p.axisValue}<br/>汇率: ${p.data}`;
-          }
-        },
-        grid: {
-          left: '5%',
-          right: '5%',
-          bottom: '20%',
-          top: '10%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          data: data.map(d => d.date),
-          boundaryGap: false,
-          axisLabel: { rotate: 45 }
-        },
-        yAxis: {
-          type: 'value',
-          min: 700,
-          max: 740,
-          splitLine: { lineStyle: { type: 'dashed' } }
-        },
-        dataZoom: [
-          {
-            type: 'inside',
-            start: 0,
-            end: 100
+        if (chart) chart.dispose();
+        chart = echarts.init(document.getElementById('chart'));
+
+        chart.setOption({
+          backgroundColor: '#fff',
+          tooltip: {
+            trigger: 'axis',
+            formatter: params => {
+              const p = params[0];
+              return `${p.axisValue}<br/>汇率: ${p.data}`;
+            }
           },
-          {
-            type: 'slider',
-            start: 0,
-            end: 100,
-            height: 24,
-            bottom: 10
-          }
-        ],
-        series: [{
-          name: '汇率',
-          type: 'line',
-          data: data.map(d => d.rate),
-          smooth: true,
-          showSymbol: false,
-          lineStyle: {
-            color: '#007BFF',
-            width: 3
+          grid: {
+            left: '5%',
+            right: '5%',
+            bottom: '20%',
+            top: '10%',
+            containLabel: true
           },
-          areaStyle: {
-            color: 'rgba(0, 123, 255, 0.15)'
-          }
-        }]
-      });
+          xAxis: {
+            type: 'category',
+            data: data.map(d => d.date),
+            boundaryGap: false,
+            axisLabel: { rotate: 45 }
+          },
+          yAxis: {
+            type: 'value',
+            min: 700,
+            max: 740,
+            splitLine: { lineStyle: { type: 'dashed' } }
+          },
+          dataZoom: [
+            { type: 'inside', start: 0, end: 100 },
+            { type: 'slider', start: 0, end: 100, height: 24, bottom: 10 }
+          ],
+          series: [{
+            name: '汇率',
+            type: 'line',
+            data: data.map(d => d.rate),
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { color: '#007BFF', width: 3 },
+            areaStyle: { color: 'rgba(0, 123, 255, 0.15)' }
+          }]
+        });
+
+      } catch (err) {
+        alert('加载数据失败: ' + err.message);
+      }
     }
 
     async function refreshRate() {
@@ -203,6 +209,12 @@
         const result = await resp.json();
         if (result.rate) {
           await loadData();
+
+          const timestamp = result.timestamp || new Date().toLocaleString('zh-CN');
+          document.getElementById('last-fetch-info').innerHTML = `
+            最后抓取时间：${timestamp}<br/>
+            抓取汇率：${result.rate}
+          `;
         } else {
           alert('抓取失败: ' + (result.error || '未知错误'));
         }
@@ -215,17 +227,13 @@
     }
 
     document.getElementById('refresh-btn').addEventListener('click', refreshRate);
-
     document.addEventListener('wheel', function (e) {
-      if (e.deltaY < 0) {
-        currentDays = Math.min(currentDays + 1, maxDays);
-      } else {
-        currentDays = Math.max(currentDays - 1, minDays);
-      }
+      currentDays += (e.deltaY < 0 ? 1 : -1);
+      currentDays = Math.max(minDays, Math.min(maxDays, currentDays));
       loadData();
     });
 
-    loadData();
+    window.onload = loadData;
   </script>
 </body>
 </html>

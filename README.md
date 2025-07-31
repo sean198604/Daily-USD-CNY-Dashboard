@@ -1,89 +1,84 @@
-# USD 买入价汇率看板项目 (Flask + ECharts)
 
-一个轻量级的网页看板，实时从人行官网爬取美元（USD）对人民币（CNY）的现汇买入价数据，并支持手动刷新和定时抓取。
+# USD 现汇买入价看板 (Flask + ECharts)
 
-## ✨ 项目亮点
+![screenshot](./截屏2025-07-31 09.05.34.png)
 
-- 使用 Flask 构建后端 API 和管理面板
-- 使用 APScheduler 每天定时自动抓取汇率
-- 前端基于 ECharts 绘制交互式图表
-- 支持管理员手动添加或修正汇率数据
-- 可通过鼠标滚轮缩放查看历史数据范围
-```
-┌────────────┐        定时/手动触发         ┌──────────────┐
-│ APScheduler│──────────────────────────▶│ fetch_usd... │
-└────────────┘                           └──────────────┘
-        ▲                                       │
-        │ parse->date,rate                      │
-        │                                       ▼
-    ┌──────────────┐                   ┌──────────────┐
-    │  SQLite DB   │◀──────────────────│ insert/update│
-    └──────────────┘                   └──────────────┘
-        ▲                                       │
-        │ /api/rates                            │
-        │                                       ▼
-    ┌──────────────┐                   前端 HTML+ECharts
-    │  Flask App   │◀───────────────────────────────┐
-    │ - Admin(CRUD)│                                │
-    │ - REST API   │                                ▼
-    └──────────────┘                  ┌───────────────────────┐
-                                      │  User Browser Canvas  │
-                                      └───────────────────────┘
-```
+## 📌 项目简介
 
-## 📦 安装依赖
-#本地运行
-macos
-```bash
-进入项目所在文件夹 cd 拖拽目录进终端
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+这是一个轻量级的网页看板系统，用于实时展示美元对人民币的现汇买入价。支持以下功能：
 
-windows
-进入项目所在文件夹 在地址栏输入cmd回车
-```bash
-pip install -r requirements.txt
-```
+- 定时从中国银行官网抓取 USD/CNY 的现汇买入价数据；
+- 自动保存到 SQLite 数据库；
+- 使用 ECharts 展示近 7～90 天的历史走势；
+- 显示每日最接近 9:30 的汇率作为“今日现汇买入价”；
+- 页面底部按钮支持手动刷新汇率；
+- 按钮旁显示最后一次抓取的汇率及时间；
+- 支持图像嵌入展示看板页面截图。
 
-## 🚀 启动项目
-macos
-进入项目所在文件夹 cd 拖拽目录进终端
-```bash
-./venv/bin/python fetch_usd_rate.py
-./venv/bin/python app.py
-```
-
-windows
-进入项目所在文件夹 在地址栏输入cmd回车
-```bash
-python fetch_usd_rate.py   # 初次初始化
-python app.py
-```
-访问http://localhost:5050/或ip地址+：5050进行访问
-管理员后台http://localhost:5050/admin
+---
 
 ## 📁 项目结构
 
-```
-your-project/
-├── app.py
-├── fetch_usd_rate.py
-├── rates.db
-├── requirements.txt
+```bash
+.
+├── app.py                 # 主 Flask 应用入口
+├── fetch_usd_rate.py      # 汇率抓取与数据库处理脚本
 ├── templates/
-│   ├── index.html
-│   └── admin.html
+│   └── index.html         # 前端页面模板（含图表、数据展示）
 ├── static/
-│   └── LOGO.PNG
+│   └── logo.png           # 页面右上角的 logo 图标
+├── usd_rates.db           # SQLite 数据库文件
+└── 截屏2025-07-31 09.05.34.png  # 看板页面截图
 ```
-其中LOGO.PNG请自行替换
 
-## 📅 数据来源
+---
 
-数据来源于中国银行官网，默认每天上午9:30定时自动获取。
+## ⚙️ 安装与运行
 
-## 📄 License
+### 1. 安装依赖
 
-MIT License
+```bash
+pip install flask requests beautifulsoup4 apscheduler
+```
+
+### 2. 启动服务
+
+```bash
+python app.py
+```
+
+浏览器访问 [http://127.0.0.1:5000](http://127.0.0.1:5000) 查看看板页面。
+
+---
+
+## 🔧 功能说明
+
+### 汇率抓取逻辑：
+
+- 每次抓取从中国银行汇率网页中解析出 USD 现汇买入价；
+- 系统将保存抓取时间和汇率数据到 SQLite；
+- 页面上方显示“今日 USD 现汇买入价”，即当日最接近 9:30 的数据；
+- 页面底部按钮旁显示最近一次抓取的汇率信息（无论是否为当日）；
+- 用户可手动点击按钮刷新数据；
+
+---
+
+## 🧩 技术栈
+
+- 后端：Flask
+- 前端：ECharts + HTML5 + Tailwind CSS
+- 数据：SQLite + APScheduler
+
+---
+
+## 📷 页面截图
+
+如图所示，展示每日最接近 9:30 的汇率数据，以及近 90 天的走势：
+
+![看板截图](./截屏2025-07-31 09.05.34.png)
+
+---
+
+## 📄 许可
+
+本项目基于 MIT 协议开源，仅供学习交流使用。
