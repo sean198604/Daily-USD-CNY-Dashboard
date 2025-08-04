@@ -113,7 +113,7 @@ python app.py             # 启动 Flask 应用
 ---
 
 ## ⏰ 数据来源与抓取逻辑
-- 汇率来源：中国银行官网（https://www.boc.cn/sourcedb/whpj/）
+- 汇率来源：中国银行官网 https://www.boc.cn/sourcedb/whpj/
 - 每次抓取从中国银行汇率网页中解析出 USD 现汇买入价；
 - 系统将保存抓取时间和汇率数据到 SQLite；
 - 页面上方显示“今日 USD 现汇买入价”，即当日最接近 9:30 的数据；
