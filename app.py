@@ -27,7 +27,7 @@ def api_rates():
     rows = c.fetchall()
     conn.close()
 
-    target_time = time(9, 30)
+    target_time = time(9, 31)
     grouped = {}
 
     for _id, d, pt, r, m in rows:
@@ -103,6 +103,14 @@ def admin_add():
     conn.close()
     return redirect(url_for('admin'))
 
+@app.route('/admin/delete/<int:rate_id>', methods=['POST'])
+def admin_delete(rate_id):
+    conn = sqlite3.connect(app.config['DB_PATH'])
+    c = conn.cursor()
+    c.execute('DELETE FROM rates WHERE id = ?', (rate_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin'))
 
 @app.route('/api/fetch', methods=['POST'])
 def api_fetch():
@@ -147,7 +155,7 @@ scheduler.add_job(
     job_fetch_daily,
     'cron',
     hour=9,
-    minute=30,
+    minute=31,
     misfire_grace_time=60  # 防止错过任务
 )
 scheduler.start()
