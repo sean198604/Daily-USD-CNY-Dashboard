@@ -29,13 +29,27 @@ def fetch_usd_rate():
         if cols and '美元' in cols[0] and len(cols) >= 7:
             try:
                 rate = float(cols[1])
-                raw_pub_time = cols[6]  # 例如 '2025.07.16 15:17:34'
-                dt = datetime.strptime(raw_pub_time, '%Y.%m.%d %H:%M:%S')
+                raw_pub_time = cols[6]  # 可能是 '2025.07.16 15:17:34' 或 '2025/11/24 09:18:14'
+
+                # 支持多种时间格式
+                dt = None
+                for fmt in ('%Y.%m.%d %H:%M:%S', '%Y/%m/%d %H:%M:%S'):
+                    try:
+                        dt = datetime.strptime(raw_pub_time, fmt)
+                        break
+                    except ValueError:
+                        pass
+
+                if dt is None:
+                    print(f'[错误] 无法解析日期格式: {raw_pub_time}')
+                    return None
+
                 return {
                     'date': dt.strftime('%Y-%m-%d'),
                     'pub_time': dt.strftime('%H:%M:%S'),
                     'rate': rate
                 }
+
             except Exception as e:
                 print(f'[错误] 解析美元汇率失败: {e}')
                 return None
@@ -56,6 +70,7 @@ def store_rate_to_db(rate_data, db_path='rates.db'):
     try:
         conn = sqlite3.connect(db_path)
         c = conn.cursor()
+
         # 创建表（如不存在）
         c.execute('''
             CREATE TABLE IF NOT EXISTS rates (
