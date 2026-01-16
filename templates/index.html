@@ -3,237 +3,277 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>USD现汇买入价看板</title>
+  <title>USD 汇率监控看板</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
   <style>
+    :root {
+      --primary-color: #2563eb;
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+    }
+
     body {
-      margin: 0;
-      padding: 0;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background-color: #f0f2f5;
-      color: #333;
+      margin: 0; padding: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
     }
 
     .container {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 1rem;
     }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      transition: box-shadow 0.3s ease;
+    /* 顶部布局：汇率块与 Logo */
+    .top-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 10px;
+      margin-bottom: 0.8rem;
+      align-items: stretch; /* 让子元素高度拉平一致 */
     }
 
-    .card:hover {
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .header {
+    /* 1. 顶部深色块 */
+    .hero-strip {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 80px; /* 增加一点基础高度 */
+    }
+
+    /* USD 巨大底纹 */
+    .hero-strip::after {
+      content: 'USD';
+      position: absolute;
+      right: 5%;
+      bottom: -15px;
+      font-size: 5rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.12);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero-info { 
+      position: relative;
+      z-index: 2;
+    }
+    
+    .hero-label { font-size: 0.85rem; opacity: 0.7; margin-bottom: 2px; display: block; }
+    /* 这里控制汇率数字的大小 */
+    .hero-value { font-size: 2.2rem; font-weight: 800; color: #60a5fa; letter-spacing: 0.5px; line-height: 1; }
+    
+    /* 2. 右侧 Logo 容器：高度与左侧对齐 */
+    .logo-container {
+      display: flex;
+      justify-content: flex-end; 
+      align-items: center; /* 垂直居中 */
+    }
+
+    /* 修改 Logo 高度，使其与左侧 hero-strip 容器高度感官一致 */
+    .logo { 
+      height: 70px; /* 大幅调大，匹配左侧 2.2rem 汇率块的高度感 */
+      width: auto; 
+      display: block; 
+      object-fit: contain;
+    }
+
+    /* 3. 中间图表 */
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .chart-header {
+      display: flex;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .chart-title { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); }
+    #chart { width: 100%; height: 350px; }
+
+    /* 4. 底部操作栏 */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 10px;
     }
 
-    h1 {
-      font-size: 1.6rem;
-      margin: 0;
-      color: #007BFF;
-    }
-
-    .logo {
-      height: 40px;
-    }
-
-    #chart {
-      width: 100%;
-      height: 420px;
+    .fetch-result-box {
+      background: #e2e8f0;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 4px solid var(--primary-color);
+      min-height: 70px;
     }
 
     button {
-      background-color: #007BFF;
+      background: var(--primary-color);
       color: white;
       border: none;
-      padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      border-radius: 8px;
+      font-weight: 600;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
     }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+    button:hover { background: #1d4ed8; transform: translateY(-1px); }
+    button:disabled { background: #94a3b8; }
 
-    button:disabled {
-      background-color: #a0c4ff;
-      cursor: not-allowed;
-    }
-
-    #refresh-info {
-      margin-top: 0.6rem;
-      font-size: 0.9rem;
-      color: #666;
-    }
-
-    #last-fetch-info {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #444;
-    }
-
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.3rem;
-      }
-
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      #chart {
-        height: 300px;
-      }
-
-      button {
-        width: 100%;
-      }
+    @media (max-width: 768px) {
+      .top-layout, .action-grid { grid-template-columns: 1fr; }
+      .logo-container { justify-content: center; margin-top: 10px; }
+      .logo { height: 50px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>今日USD现汇买入价（<span id="today-date">—</span>）：<span id="today-rate">—</span></h1>
-      <img src="{{ url_for('static', filename='LOGO.PNG') }}" class="logo" alt="公司LOGO" />
+    <div class="top-layout">
+      <div class="hero-strip">
+        <div class="hero-info">
+          <span class="hero-label">今日标尺汇率 (<span id="today-date">—</span>)</span>
+          <span class="hero-value" id="today-rate">0.00</span>
+        </div>
+      </div>
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='LOGO.PNG') }}" class="logo" alt="LOGO" />
+      </div>
     </div>
 
-    <div class="card">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">历史走势 (展示 <span id="days-count">90</span>天)</div>
+        <div style="font-size: 0.75rem; color: #94a3b8;">滚轮缩放查看区间</div>
+      </div>
       <div id="chart"></div>
     </div>
 
-    <div class="card">
-      <button id="refresh-btn">获取最新汇率</button>
-      <div id="refresh-info">滑动滚轮 ↑↓ 可调整历史显示天数</div>
-      <div id="last-fetch-info">
-        最后抓取时间：—<br/>
-        抓取汇率：—
+    <div class="action-grid">
+      <div class="fetch-result-box" id="realtime-display">
+        <div><b>实时同步：</b> 等待触发</div>
+        <div style="font-size: 0.75rem; margin-top: 4px; color: #64748b;">实时获取中行最新牌价结果</div>
       </div>
+      <button id="refresh-btn">执行实时同步</button>
     </div>
   </div>
 
   <script>
-    let currentDays = 30;
-    const minDays = 7;
-    const maxDays = 90;
+    let currentDays = 90;
     let chart = null;
 
-    async function loadData() {
+    async function loadHistoryData() {
       try {
         const resp = await fetch(`/api/rates?days=${currentDays}`);
         const data = await resp.json();
-        if (!Array.isArray(data) || data.length === 0) {
-          alert('未能获取有效数据');
-          return;
-        }
+        if (!data.length) return;
 
-        const today = data[data.length - 1];
-        document.getElementById('today-rate').innerText = today.rate || '—';
-        document.getElementById('today-date').innerText = today.date || '—';
+        const latest = data[data.length - 1];
+        
+        // 修改点 1：标尺汇率显示 2 位小数
+        document.getElementById('today-rate').innerText = latest.rate.toFixed(2);
+        document.getElementById('today-date').innerText = latest.date;
+        document.getElementById('days-count').innerText = currentDays;
 
-        if (chart) chart.dispose();
-        chart = echarts.init(document.getElementById('chart'));
-
-        chart.setOption({
-          backgroundColor: '#fff',
-          tooltip: {
-            trigger: 'axis',
-            formatter: params => {
-              const p = params[0];
-              return `${p.axisValue}<br/>汇率: ${p.data}`;
-            }
-          },
-          grid: {
-            left: '5%',
-            right: '5%',
-            bottom: '20%',
-            top: '10%',
-            containLabel: true
-          },
-          xAxis: {
-            type: 'category',
-            data: data.map(d => d.date),
-            boundaryGap: false,
-            axisLabel: { rotate: 45 }
-          },
-          yAxis: {
-            type: 'value',
-            min: 700,
-            max: 740,
-            splitLine: { lineStyle: { type: 'dashed' } }
-          },
-          dataZoom: [
-            { type: 'inside', start: 0, end: 100 },
-            { type: 'slider', start: 0, end: 100, height: 24, bottom: 10 }
-          ],
-          series: [{
-            name: '汇率',
-            type: 'line',
-            data: data.map(d => d.rate),
-            smooth: true,
-            showSymbol: false,
-            lineStyle: { color: '#007BFF', width: 3 },
-            areaStyle: { color: 'rgba(0, 123, 255, 0.15)' }
-          }]
-        });
-
+        renderChart(data);
       } catch (err) {
-        alert('加载数据失败: ' + err.message);
+        console.error('Data Load Error:', err);
       }
     }
 
-    async function refreshRate() {
+    function renderChart(data) {
+      if (!chart) chart = echarts.init(document.getElementById('chart'));
+      
+      const rates = data.map(d => d.rate);
+      const rawMin = Math.min(...rates);
+      const rawMax = Math.max(...rates);
+      const yAxisMin = Math.floor(rawMin / 5) * 5;
+      const yAxisMax = Math.ceil(rawMax / 5) * 5;
+
+      chart.setOption({
+        grid: { top: '8%', left: '3%', right: '3%', bottom: '5%', containLabel: true },
+        tooltip: { trigger: 'axis' },
+        xAxis: {
+          type: 'category',
+          data: data.map(d => d.date),
+          axisLabel: { fontSize: 10, color: '#94a3b8' }
+        },
+        yAxis: {
+          type: 'value',
+          min: yAxisMin,
+          max: yAxisMax,
+          interval: 5,
+          splitLine: { lineStyle: { color: '#f1f5f9' } },
+          axisLabel: { color: '#64748b' }
+        },
+        series: [{
+          data: rates,
+          type: 'line',
+          smooth: 0.3,
+          showSymbol: false,
+          lineStyle: { width: 3, color: '#2563eb' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(37,99,235,0.15)' },
+              { offset: 1, color: 'rgba(37,99,235,0)' }
+            ])
+          }
+        }]
+      }, true);
+    }
+
+    async function triggerRealtimeFetch() {
       const btn = document.getElementById('refresh-btn');
+      const display = document.getElementById('realtime-display');
+      btn.innerText = '正在抓取...';
       btn.disabled = true;
-      btn.innerText = '刷新中...';
 
       try {
         const resp = await fetch('/api/fetch', { method: 'POST' });
-        const result = await resp.json();
-        if (result.rate) {
-          await loadData();
-
-          const timestamp = result.timestamp || new Date().toLocaleString('zh-CN');
-          document.getElementById('last-fetch-info').innerHTML = `
-            最后抓取时间：${timestamp}<br/>
-            抓取汇率：${result.rate}
+        const res = await resp.json();
+        if (res.rate) {
+          // 底部实时结果建议保留更多精度以便观察细微波动
+          display.innerHTML = `
+            <div><b>抓取成功！</b> 实时汇率：<span style="color:#e11d48;font-weight:bold;font-size:1.1rem">${res.rate.toFixed(4)}</span></div>
+            <div style="font-size: 0.75rem; color: #475569;">发布时间：${res.date} ${res.pub_time}</div>
           `;
-        } else {
-          alert('抓取失败: ' + (result.error || '未知错误'));
         }
-      } catch (err) {
-        alert('网络错误: ' + err.message);
       } finally {
+        btn.innerText = '执行实时同步';
         btn.disabled = false;
-        btn.innerText = '获取最新汇率';
       }
     }
 
-    document.getElementById('refresh-btn').addEventListener('click', refreshRate);
-    document.addEventListener('wheel', function (e) {
-      currentDays += (e.deltaY < 0 ? 1 : -1);
-      currentDays = Math.max(minDays, Math.min(maxDays, currentDays));
-      loadData();
-    });
+    document.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) < 10) return;
+      currentDays += (e.deltaY > 0 ? 5 : -5);
+      currentDays = Math.max(7, Math.min(180, currentDays));
+      loadHistoryData();
+    }, { passive: true });
 
-    window.onload = loadData;
+    window.addEventListener('resize', () => chart && chart.resize());
+    document.getElementById('refresh-btn').onclick = triggerRealtimeFetch;
+    window.onload = loadHistoryData;
   </script>
 </body>
 </html>
