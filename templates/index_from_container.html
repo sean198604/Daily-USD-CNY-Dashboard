@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>USD 汇率监控看板</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>💱</text></svg>" />
   <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
   <style>
     :root {
@@ -46,18 +45,17 @@
       background: linear-gradient(135deg, var(--hero-bg-start) 0%, var(--hero-bg-end) 100%);
       color: white;
       border-radius: 12px;
-      padding: 1.25rem 1.5rem;
+      padding: 1.5rem;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       position: sticky;
       top: 0;
       z-index: 100;
-      overflow: hidden;
+      overflow: visible;
       display: flex;
       justify-content: flex-start;
       align-items: center;
       flex: 1 1 75%;
       margin-bottom: 0;
-      min-height: 80px;
     }
 
     .hero-strip::after {
@@ -81,8 +79,9 @@
       font-size: 1.5rem;
       font-weight: 700;
       color: white;
+      letter-spacing: 0.5px;
       line-height: 1;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.35rem;
     }
 
     .hero-subtitle {
@@ -92,10 +91,14 @@
     }
 
     .logo {
-      height: 56px;
+      height: 50px;
       width: auto;
-      max-width: 90%;
       object-fit: contain;
+      position: absolute;
+      top: 50%;
+      right: 50%;
+      transform: translate(50%, -50%);
+      z-index: 3;
     }
 
     /* ===== 顶部区域布局 ===== */
@@ -112,10 +115,8 @@
       background: transparent;
       border-radius: 12px;
       position: relative;
+      height: auto;
       min-height: 80px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
 
     /* ===== 卡片通用样式 ===== */
@@ -227,22 +228,14 @@
     }
 
     /* ===== 响应式 ===== */
-    @media (max-width: 768px) {
-      .container { padding: 0.75rem; }
-      .action-grid { grid-template-columns: 1fr; }
-      .hero-strip { padding: 1rem 1.25rem; }
-      .hero-title { font-size: 1.25rem; }
-      .hero-subtitle { font-size: 0.8rem; }
-      .logo { height: 40px; }
-      .card { padding: 1rem; }
-    }
-
     @media (max-width: 520px) {
       .container { padding: 0.75rem; }
-      .hero-strip { padding: 0.875rem 1rem; }
+      .action-grid { grid-template-columns: 1fr; }
+      .hero-strip { padding: 1rem; }
       .hero-title { font-size: 1.1rem; }
       .hero-subtitle { font-size: 0.75rem; }
-      .logo { height: 36px; }
+      .logo { height: 35px; }
+      .card { padding: 1rem; }
     }
   </style>
 </head>
@@ -253,7 +246,7 @@
       <header class="hero-strip">
         <div class="hero-content">
           <div class="hero-title" id="today-rate">0.00</div>
-          <div class="hero-subtitle">今日9:25抓取汇率&nbsp;(<span id="today-date">—</span>)</div>
+          <div class="hero-subtitle">今日标尺汇率&nbsp;(<span id="today-date">—</span>)</div>
         </div>
       </header>
       <div class="logo-container">

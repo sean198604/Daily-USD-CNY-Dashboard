@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  usd-cny:
+    build: .
+    image: usd-cny-dashboard:latest
+    container_name: "5050"
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./rates.db:/app/rates.db
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
