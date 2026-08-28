@@ -184,3 +184,10 @@ cython_debug/
 *.db
 *.sqlite
 *.sqlite3
+# Local-only artifacts & runtime data (repo 零污染)
+.workbuddy/
+.codebuddy/
+data.json
+Inifity/
+OUT.PY
+out_test.py
