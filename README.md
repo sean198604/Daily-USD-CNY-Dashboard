@@ -1,3 +1,5 @@
+<div align="center">
+
 # Daily-USD-CNY-Dashboard · 美元现汇买入价看板
 
 > 自动抓取中国银行 USD/CNY 现汇买入价，Flask + ECharts 驱动的汇率监控看板，内置定时抓取、SQLite 持久化、7～90 天走势图与管理后台，Docker 一键部署。
@@ -12,6 +14,8 @@
 **关键词 / Keywords**：美元汇率看板 · 人民币汇率监控 · USD CNY exchange rate dashboard · Bank of China rate scraper · 现汇买入价查询 · Flask 汇率监控 · ECharts 汇率走势图 · SQLite 数据持久化 · boc exchange rate · USD/CNY history chart
 
 🔗 **静态在线演示**：https://trustlayer.free.nf/ （每日自动同步数据的纯前端版本）
+
+</div>
 
 ## 🚀 快速部署
 
@@ -39,7 +43,11 @@ python app.py                # 启动 Flask 应用（端口 5050）
 
 ## 📸 界面截图
 
+<div align="center">
+
 ![汇率看板截图](screenshot.png)
+
+</div>
 
 - 顶部「今日汇率」展示数据库中每日最接近 9:25 的现汇买入价；
 - 「获取最新汇率」按钮一键从中国银行官网抓取，旁侧实时显示最后抓取时间与汇率；
