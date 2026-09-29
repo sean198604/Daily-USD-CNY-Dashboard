@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/readme-cover.png" alt="Daily USD CNY Dashboard project cover" width="100%" /></p>
+
 <div align="center">
 
 # Daily-USD-CNY-Dashboard · 美元现汇买入价看板
